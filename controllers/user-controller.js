@@ -1,7 +1,15 @@
+const {validationResult} = require('express-validator');
+const bcrypt = require('bcryptjs');
+
 const User = require('../models/user');
 
-const createUser = async (req, res, next) => {
-    const {name, email} = req.body;
+const signup = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(500).send({message: 'Vul alle velden in svp.'});
+    }
+
+    const {firstname, lastname, email, password, asthmaType} = req.body;
 
     let existingUser;
     try {
@@ -11,14 +19,22 @@ const createUser = async (req, res, next) => {
     }
 
     if (existingUser) {
-        return res.status(422).send({message: 'Er bestaat al iemand met dit email-adres'})
+        return res.status(422).send({message: 'Er bestaat al iemand met dit email-adres'});
+    }
+
+    let hashedPassword;
+    try {
+        hashedPassword = await bcrypt.hash(password, 12);
+    } catch (e) {
+        return res.status(500).send({message: 'Kan niet aanmelden, probeer het opnieuw.'});
     }
 
     const createdUser = new User({
-        firstname: name,
-        email: email,
-        password: "password",
-        asthmaType: "allergisch"
+        firstname,
+        lastname: lastname || null,
+        email,
+        password: hashedPassword,
+        asthmaType
     });
 
     try {
@@ -27,7 +43,42 @@ const createUser = async (req, res, next) => {
         return res.status(500).send({message: 'Kan niet aanmelden, probeer het opnieuw.'});
     }
 
-    return res.status(201).json({message: `Gebruiker ${name} aangemaakt`});
+    return res.status(201).json({userId: createdUser.id});
 }
 
-exports.createUser = createUser;
+const login = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(500).send({message: 'Controleer de velden en probeer het opnieuw.'});
+    }
+
+    const {email, password} = req.body;
+
+    let existingUser;
+    try {
+        existingUser = await User.findOne({email: email});
+    } catch (e) {
+        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});
+    }
+
+    if (!existingUser) {
+        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});
+    }
+
+    let isValidPassword = false;
+    try {
+        isValidPassword = await bcrypt.compare(password, existingUser.password);
+    } catch (e) {
+        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});
+    }
+
+    if (!isValidPassword) {
+        return res.status(403).send({message: 'Wachtwoord klopt niet.'});
+    }
+
+    res.json({userId: existingUser.id});
+
+};
+
+exports.signup = signup;
+exports.login = login;

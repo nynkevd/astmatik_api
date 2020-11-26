@@ -5,8 +5,17 @@ const userController = require('../controllers/user-controller');
 
 const router = express.Router();
 
-router.post("/createuser", [
-    check('name').not().isEmpty(),
-], userController.createUser);
+router.post("/signup", [
+    check('firstname').not().isEmpty(),
+    check('lastname'),
+    check('email').isEmail(),
+    check('password').isLength({min: 6}),
+    check('asthmaType').not().isEmpty(),
+], userController.signup);
+
+router.post("/login", [
+    check('email').isEmail(),
+    check('password').not().isEmpty(),
+], userController.login);
 
 module.exports = router;

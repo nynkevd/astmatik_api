@@ -13,7 +13,7 @@ const userSchema = new Schema({
     medication: [{type: mongoose.Types.ObjectId, ref: 'possibleMedication', required: false}],
     exercises: [{type: mongoose.Types.ObjectId, ref: 'possibleExercises', required: false}],
     triggers: [{type: mongoose.Types.ObjectId, ref: 'possibleTriggers', required: false}],
-    medication: [{type: String, required: false}],
+    attacks: [{type: String, required: false}],
 });
 
 userSchema.plugin(uniqueValidator);

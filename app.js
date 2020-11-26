@@ -18,6 +18,10 @@ app.use((req, res, next) => {
 
 app.use("/api/user", userRoutes);
 
+app.get('/', (req, res) => {
+    res.send('Astmatik Hello world');
+})
+
 mongoose
     .connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@astmatik-db.4a19c.mongodb.net/${process.env.DB_DATABASE}?retryWrites=true&w=majority`)
     .then(() => {
