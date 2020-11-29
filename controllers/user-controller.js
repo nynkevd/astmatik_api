@@ -2,6 +2,31 @@ const {validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
 
 const User = require('../models/user');
+const { get } = require('mongoose');
+
+const getUserProfile = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(500).send({message: 'Vul alle velden in svp.'});
+    };
+
+    const {userId} = req.params;
+
+    let user;
+    try {
+        user = await User.findById(userId);
+    } catch (e) {
+        return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
+    }
+
+    if (!user) {
+        return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
+    }
+
+    const {firstname, lastname, asthmaType, email, medication, exercises} = user;
+
+    res.send({firstname, lastname, asthmaType, email, medication, exercises});
+};
 
 const signup = async (req, res) => {
     const errors = validationResult(req);
@@ -80,5 +105,6 @@ const login = async (req, res) => {
 
 };
 
+exports.getUserProfile = getUserProfile;
 exports.signup = signup;
 exports.login = login;
