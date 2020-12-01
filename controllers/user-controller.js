@@ -105,6 +105,62 @@ const login = async (req, res) => {
 
 };
 
+const editUser = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(500).send({message: 'Vul alle velden in svp.'});
+    }
+
+    const {userId} = req.params;
+    const {firstname, lastname, email, password, asthmaType} = req.body;
+
+    let user;
+    try {
+        user = await User.findById(userId);
+    } catch (e) {
+        return res.status(404).send({message: 'Er is geen gebruiker gevonden. Probeer het opnieuw.'});
+    }
+
+    if (!user) {
+        return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
+    }
+
+    let existingUser;
+    try {
+        existingUser = await User.findOne({email: email});
+    } catch (e) {
+        return res.status(500).send({message: 'Kan niet aanmelden, probeer het opnieuw.'});
+    }
+
+    if (!!existingUser && user.id !== existingUser.id) {
+        return res.status(422).send({message: 'Er bestaat al iemand met dit email-adres'});
+    }
+
+    let hashedPassword;
+    if (password) {
+        try {
+            hashedPassword = await bcrypt.hash(password, 12);
+        } catch (e) {
+            return res.status(500).send({message: 'Kan niet aanmelden, probeer het opnieuw.'});
+        }
+    }
+
+    try {
+        user.firstname = firstname;
+        user.lastname = lastname || null;
+        user.email = email;
+        user.password = hashedPassword || user.password;
+        user.asthmaType = asthmaType;
+        await user.save();
+    } catch {
+        return res.status(500).send({message: 'Er is iets fout gegaan, probeer het opnieuw.'});
+    }
+
+    return res.status(200).send({message: 'Succesvol de gebruiker aangepast.'})
+}
+
+
 exports.getUserProfile = getUserProfile;
 exports.signup = signup;
 exports.login = login;
+exports.editUser = editUser;
