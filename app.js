@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
 const userRoutes = require('./routes/user-routes');
+const attackRoutes = require('./routes/attack-routes');
+const peakflowRoutes = require('./routes/peakflow-routes');
 
 const app = express();
 
@@ -17,9 +19,11 @@ app.use((req, res, next) => {
 });
 
 app.use("/api/user", userRoutes);
+app.use("/api/attack", attackRoutes);
+app.use("/api/peakflow", peakflowRoutes);
 
 app.get('/', (req, res) => {
-    res.send('Astmatik Hello world');
+    res.send('Astmatik API!');
 })
 
 mongoose

@@ -2,7 +2,6 @@ const {validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
 
 const User = require('../models/user');
-const { get } = require('mongoose');
 
 const getUserProfile = async (req, res) => {
     const errors = validationResult(req);

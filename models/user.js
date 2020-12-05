@@ -14,6 +14,9 @@ const userSchema = new Schema({
     exercises: [{type: mongoose.Types.ObjectId, ref: 'possibleExercises', required: false}],
     triggers: [{type: mongoose.Types.ObjectId, ref: 'possibleTriggers', required: false}],
     attacks: [{type: String, required: false}],
+    lungDoc: {type: Object, required: false},
+    gp: {type: Object, required: false},
+    contact: {type: Object, required: false}
 });
 
 userSchema.plugin(uniqueValidator);

@@ -5,11 +5,14 @@ const peakflowController = require('../controllers/peakflow-controller');
 
 const router = express.Router();
 
+router.get("/overview/:userId", [], peakflowController.getOverview);
+
 router.post("/add", [
-    check('user').not().isEmpty(),
+    check('timestamp').not().isEmpty(),
+    check('userId').not().isEmpty(),
     check('value').not().isEmpty(),
-    check('afterMedication').not().isEmpty(),
-    check('')
+    check('afterMedication').isBoolean(),
+    check('morning').isBoolean(),
 ], peakflowController.add);
 
 module.exports = router;
