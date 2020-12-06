@@ -23,7 +23,8 @@ const getOverview = async (req, res) => {
         return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
     }
 
-    let overview = {today: [], thisWeek: {"Mon": [], "Tue": [], "Wed": [], "Thu": [], "Fri": [], "Sat": [], "Sun": []}, thisMonth: {}};
+    let overview = {today: [], thisWeek: {}, thisMonth: {}};
+    // "Mon": [], "Tue": [], "Wed": [], "Thu": [], "Fri": [], "Sat": [], "Sun": []
     
     // Today, This week, This months?
     let todaysPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('day').format(), $lt: moment().endOf('day').format()}}).sort({timestamp: 'asc'});
@@ -36,11 +37,25 @@ const getOverview = async (req, res) => {
         });
     }
 
-    let thisWeeksPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('week').format(), $lt: moment().endOf('week').format()}}).sort({timestamp: 'asc'});
+    let thisWeeksPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('isoWeek').format(), $lt: moment().endOf('isoWeek').format()}}).sort({timestamp: 'asc'});
     for (const thisPeakflow of thisWeeksPeakflow) {
-        console.log(thisPeakflow);
-        overview.thisWeek[moment(thisPeakflow.timestamp).format("ddd")].push({
-            time: moment(thisPeakflow.timestamp).format("HH:mm"),
+        let day = moment(thisPeakflow.timestamp).format("ddd");
+        if (!overview.thisWeek[day]) {
+            overview.thisWeek[day] = [];
+        }
+        overview.thisWeek[day].push({
+            value: thisPeakflow.value,
+            morning: thisPeakflow.morning
+        });
+    }
+
+    let thisMonthsPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('month').format(), $lt: moment().endOf('month').format()}}).sort({timestamp: 'asc'});
+    for (const thisPeakflow of thisMonthsPeakflow) {
+        let day = moment(thisPeakflow.timestamp).format("DD");
+        if (!overview.thisMonth[day]) {
+            overview.thisMonth[day] = [];
+        }
+        overview.thisMonth[day].push({
             value: thisPeakflow.value,
             morning: thisPeakflow.morning
         });
