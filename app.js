@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const userRoutes = require('./routes/user-routes');
 const attackRoutes = require('./routes/attack-routes');
 const peakflowRoutes = require('./routes/peakflow-routes');
+const triggerRoutes = require('./routes/trigger-routes');
+const possibleMedicationRoutes = require('./routes/possibleMedication-routes');
 
 const app = express();
 
@@ -21,6 +23,9 @@ app.use((req, res, next) => {
 app.use("/api/user", userRoutes);
 app.use("/api/attack", attackRoutes);
 app.use("/api/peakflow", peakflowRoutes);
+
+app.use("/api/triggers", triggerRoutes);
+app.use("/api/possibleMedication", possibleMedicationRoutes);
 
 app.get('/', (req, res) => {
     res.send('Astmatik API!');

@@ -10,8 +10,8 @@ router.post("/add", [
     check('duration').not().isEmpty(),
     check('trigger').not().isEmpty(),
     check('userId').not().isEmpty(),
-    check('medicationTaken').isBoolean(),
-    check('takenMedication'),
+    check('medicationTaken'),
+    check('takenMedication').isBoolean(),
     check('medicationHelped')
 ], attackController.add);
 

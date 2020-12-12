@@ -24,7 +24,7 @@ const add = async (req, res, next) => {
     }
 
     const attack = new Attack({
-        timestamp: moment().format(), // TODO: Change to actual timestamp instead of placeholder!
+        timestamp: moment(timestamp).format(),
         duration,
         trigger,
         user: user.id,

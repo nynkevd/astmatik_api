@@ -23,44 +23,64 @@ const getOverview = async (req, res) => {
         return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
     }
 
-    let overview = {today: [], thisWeek: {}, thisMonth: {}};
-    // "Mon": [], "Tue": [], "Wed": [], "Thu": [], "Fri": [], "Sat": [], "Sun": []
-    
-    // Today, This week, This months?
+    let overview = {today: [], thisWeek: {
+        beforeMedication: [], afterMedication: []
+    }, thisMonth: {
+        beforeMedication: [], afterMedication: []
+    }};
+
     let todaysPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('day').format(), $lt: moment().endOf('day').format()}}).sort({timestamp: 'asc'});
     for (const thisPeakflow of todaysPeakflow) {
-        console.log(thisPeakflow);
-        overview.today.push({
+        let peakflowToAdd = {
+            beforeMedication: thisPeakflow.beforeMedication,
+            afterMedication: thisPeakflow.afterMedication,
             time: moment(thisPeakflow.timestamp).format("HH:mm"),
-            value: thisPeakflow.value,
-            morning: thisPeakflow.morning
-        });
+            notes: thisPeakflow.notes
+        }
+        overview.today.push(peakflowToAdd);
     }
 
     let thisWeeksPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('isoWeek').format(), $lt: moment().endOf('isoWeek').format()}}).sort({timestamp: 'asc'});
     for (const thisPeakflow of thisWeeksPeakflow) {
-        let day = moment(thisPeakflow.timestamp).format("ddd");
-        if (!overview.thisWeek[day]) {
-            overview.thisWeek[day] = [];
-        }
-        overview.thisWeek[day].push({
-            value: thisPeakflow.value,
+        let day = moment(thisPeakflow.timestamp).day();
+        console.log(day);       
+        let beforeMedPeakflow = {
+            value: thisPeakflow.beforeMedication,
             morning: thisPeakflow.morning
-        });
+        };
+        let afterMedPeakflow = {
+            value: thisPeakflow.afterMedication,
+            morning: thisPeakflow.morning
+        };
+        overview.thisWeek.beforeMedication[day] = beforeMedPeakflow;
+        overview.thisWeek.afterMedication[day] = afterMedPeakflow;
     }
 
     let thisMonthsPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('month').format(), $lt: moment().endOf('month').format()}}).sort({timestamp: 'asc'});
     for (const thisPeakflow of thisMonthsPeakflow) {
-        let day = moment(thisPeakflow.timestamp).format("DD");
-        if (!overview.thisMonth[day]) {
-            overview.thisMonth[day] = [];
-        }
-        overview.thisMonth[day].push({
-            value: thisPeakflow.value,
+        let day = moment(thisPeakflow.timestamp).date();      
+        let beforeMedPeakflow = {
+            value: thisPeakflow.beforeMedication,
             morning: thisPeakflow.morning
-        });
+        };
+        let afterMedPeakflow = {
+            value: thisPeakflow.beforeMedication,
+            morning: thisPeakflow.morning
+        };
+        overview.thisMonth.beforeMedication[day] = beforeMedPeakflow;
+        overview.thisMonth.afterMedication[day] = afterMedPeakflow;
     }
 
+    // console.log(overview);
+    // console.log("======================================================")
+
+    overview.thisWeek.beforeMedication = Array.from(overview.thisWeek.beforeMedication, item => item || {value: 0});
+    overview.thisWeek.afterMedication = Array.from(overview.thisWeek.afterMedication, item => item || {value: 0});
+    overview.thisMonth.beforeMedication = Array.from(overview.thisMonth.beforeMedication, item => item || {value: 0});
+    overview.thisMonth.afterMedication = Array.from(overview.thisMonth.afterMedication, item => item || {value: 0});
+
+    // console.log(overview);
+    console.log("sending");
     return res.status(200).json(overview);
 }
 
@@ -71,11 +91,10 @@ const add = async (req, res, next) => {
         return res.status(500).send({message: 'Vul alle velden in svp.'});
     }
 
-    const {timestamp, morning, afterMedication, value, userId} = req.body;
+    const {timestamp, beforeMedication, afterMedication, notes, userId} = req.body;
 
     let user;
     try {
-        console.log("test");
         user = await User.findById(userId);
     } catch (e) {
         return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
@@ -85,12 +104,15 @@ const add = async (req, res, next) => {
         return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
     }
 
+    let morning = moment(timestamp).format("HH") < 12 ? true : false;
+ 
     const peakflow = new Peakflow({
-        timestamp: moment().format(), // TODO: Change to actual timestamp instead of placeholder!
+        timestamp: moment(timestamp).format(),
         morning,
+        beforeMedication,
         afterMedication,
+        notes,
         user: user.id,
-        value
     });
 
     try {

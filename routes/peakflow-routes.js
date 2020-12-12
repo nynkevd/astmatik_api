@@ -8,11 +8,10 @@ const router = express.Router();
 router.get("/overview/:userId", [], peakflowController.getOverview);
 
 router.post("/add", [
-    check('timestamp').not().isEmpty(),
+    check('beforeMedication').not().isEmpty(),
+    check('afterMedication'),
+    check('notes'),
     check('userId').not().isEmpty(),
-    check('value').not().isEmpty(),
-    check('afterMedication').isBoolean(),
-    check('morning').isBoolean(),
 ], peakflowController.add);
 
 module.exports = router;
