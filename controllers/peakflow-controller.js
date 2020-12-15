@@ -3,11 +3,14 @@ const moment = require('moment');
 
 const User = require('../models/user');
 const Peakflow = require('../models/peakflow');
+const validateRequest = require('../helper/valid-checker');
 
 const getOverview = async (req, res) => {
     await validateRequest(req, res);
 
     const {userId} = req.userData;
+
+    console.log(userId);
 
     let user;
     try {

@@ -28,11 +28,11 @@ app.use("/api/triggers", triggerRoutes);
 app.use("/api/possibleMedication", possibleMedicationRoutes);
 
 app.get('/', (req, res) => {
-    res.send('Astmatik API!');
+    res.send('Ik faal. Groetjes Nynke');
 })
 
 mongoose
-    .connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@astmatik-db.4a19c.mongodb.net/${process.env.DB_DATABASE}?retryWrites=true&w=majority`, {})
+    .connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@astmatik-db.4a19c.mongodb.net/${process.env.DB_DATABASE}?retryWrites=true&w=majority`)
     .then(() => {
         app.listen(process.env.PORT || 5000);
     })

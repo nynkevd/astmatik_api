@@ -3,6 +3,7 @@ const moment = require('moment');
 
 const Attack = require('../models/attack');
 const User = require('../models/user');
+const validateRequest = require('../helper/valid-checker');
 
 const add = async (req, res, next) => {
     await validateRequest(req, res);
