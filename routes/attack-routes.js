@@ -9,7 +9,6 @@ router.post("/add", [
     check('timestamp').not().isEmpty(),
     check('duration').not().isEmpty(),
     check('trigger').not().isEmpty(),
-    check('userId').not().isEmpty(),
     check('medicationTaken'),
     check('takenMedication').isBoolean(),
     check('medicationHelped')

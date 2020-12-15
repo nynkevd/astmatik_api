@@ -5,12 +5,11 @@ const Attack = require('../models/attack');
 const User = require('../models/user');
 
 const add = async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(500).send({message: 'Vul alle velden in svp.'});
-    }
+    await validateRequest(req, res);
 
-    const {timestamp, duration, trigger, userId, takenMedication, medicationTaken, medicationHelped} = req.body;
+    const {userId} = req.userData;
+
+    const {timestamp, duration, trigger, takenMedication, medicationTaken, medicationHelped} = req.body;
 
     let user;
     try {

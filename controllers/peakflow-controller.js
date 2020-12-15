@@ -5,12 +5,9 @@ const User = require('../models/user');
 const Peakflow = require('../models/peakflow');
 
 const getOverview = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(500).send({message: 'Vul alle velden in svp.'});
-    }
+    await validateRequest(req, res);
 
-    const {userId} = req.params;
+    const {userId} = req.userData;
 
     let user;
     try {
@@ -86,12 +83,11 @@ const getOverview = async (req, res) => {
 
 
 const add = async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(500).send({message: 'Vul alle velden in svp.'});
-    }
+    await validateRequest(req, res);
 
-    const {timestamp, beforeMedication, afterMedication, notes, userId} = req.body;
+    const {userId} = req.userData;
+
+    const {timestamp, beforeMedication, afterMedication, notes} = req.body;
 
     let user;
     try {

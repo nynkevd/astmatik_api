@@ -1,15 +1,14 @@
 const {validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
+const validateRequest = require('../helper/valid-checker');
 
-const getUserProfile = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(500).send({message: 'Vul alle velden in svp.'});
-    };
+const getUserInfo = async (req, res, next) => {
+    await validateRequest(req, res, next);
 
-    const {userId} = req.params;
+    const {userId} = req.userData;
 
     let user;
     try {
@@ -22,9 +21,9 @@ const getUserProfile = async (req, res) => {
         return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
     }
 
-    const {firstname, lastname, asthmaType, email, medication, exercises} = user;
+    const {firstname, lastname, asthmaType, email, medication, triggers} = user;
 
-    res.send({firstname, lastname, asthmaType, email, medication, exercises});
+    res.send({firstname, lastname, asthmaType, email, medication, triggers});
 };
 
 const signup = async (req, res) => {
@@ -67,7 +66,16 @@ const signup = async (req, res) => {
         return res.status(500).send({message: 'Kan niet aanmelden, probeer het opnieuw.'});
     }
 
-    return res.status(201).json({userId: createdUser.id});
+    let token;
+    try {
+        token = jwt.sign(
+            {userId: existingUser.id, email: existingUser.email},
+            process.env.JWT_KEY);
+    } catch (e) {
+        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});    
+    }
+
+    return res.status(201).json({token});
 }
 
 const login = async (req, res) => {
@@ -100,17 +108,26 @@ const login = async (req, res) => {
         return res.status(403).send({message: 'Wachtwoord klopt niet.'});
     }
 
-    res.json({userId: existingUser.id});
+    let token;
+    try {
+        token = jwt.sign(
+            {userId: existingUser.id, email: existingUser.email},
+            process.env.JWT_KEY);
+    } catch (e) {
+        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});    
+    }
+
+    const {firstname, lastname, asthmaType, medication, triggers} = existingUser;
+
+
+    res.json({token, firstname, lastname, asthmaType, medication, triggers});
 
 };
 
 const editUser = async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(500).send({message: 'Vul alle velden in svp.'});
-    }
+    await validateRequest(req, res);
 
-    const {userId} = req.params;
+    const {userId} = req.userData;
     const {firstname, lastname, email, password, asthmaType} = req.body;
 
     let user;
@@ -159,7 +176,7 @@ const editUser = async (req, res) => {
 }
 
 
-exports.getUserProfile = getUserProfile;
+exports.getUserInfo = getUserInfo;
 exports.signup = signup;
 exports.login = login;
 exports.editUser = editUser;

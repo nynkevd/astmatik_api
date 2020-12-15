@@ -5,7 +5,7 @@ const userController = require('../controllers/user-controller');
 
 const router = express.Router();
 
-router.get("/profile/:userId", [], userController.getUserProfile);
+router.get("/info", [], userController.getUserInfo);
 
 router.post("/signup", [
     check('firstname').not().isEmpty(),
@@ -20,7 +20,7 @@ router.post("/login", [
     check('password').not().isEmpty(),
 ], userController.login);
 
-router.patch("/edit/:userId", [
+router.patch("/edit", [
     check('email').isEmail(),
     check('password'),
     check('firstname').not().isEmpty(),
