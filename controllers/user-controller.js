@@ -90,18 +90,18 @@ const login = async (req, res) => {
     try {
         existingUser = await User.findOne({email: email});
     } catch (e) {
-        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});
+        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw. Cant get user'});
     }
 
     if (!existingUser) {
-        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});
+        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw. User bestaat niet'});
     }
 
     let isValidPassword = false;
     try {
         isValidPassword = await bcrypt.compare(password, existingUser.password);
     } catch (e) {
-        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});
+        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw. Wachtwoord kan niet worden opgehaald'});
     }
 
     if (!isValidPassword) {
@@ -114,7 +114,7 @@ const login = async (req, res) => {
             {userId: existingUser.id, email: existingUser.email},
             process.env.JWT_KEY);
     } catch (e) {
-        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});    
+        return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw. Token kan niet gesigned worden'});    
     }
 
     const {firstname, lastname, asthmaType, medication, triggers} = existingUser;
