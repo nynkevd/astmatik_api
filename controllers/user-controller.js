@@ -29,10 +29,11 @@ const getUserInfo = async (req, res, next) => {
 const signup = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.log(errors);
         return res.status(500).send({message: 'Vul alle velden in svp.'});
     }
 
-    const {firstname, lastname, email, password, asthmaType} = req.body;
+    const {firstname, lastname, email, password, asthmaType, medication, triggers} = req.body;
 
     let existingUser;
     try {
@@ -57,7 +58,9 @@ const signup = async (req, res) => {
         lastname: lastname || null,
         email,
         password: hashedPassword,
-        asthmaType
+        asthmaType,
+        medication,
+        triggers
     });
 
     try {
@@ -69,12 +72,13 @@ const signup = async (req, res) => {
     let token;
     try {
         token = jwt.sign(
-            {userId: existingUser.id, email: existingUser.email},
+            {userId: createdUser.id, email: createdUser.email},
             process.env.JWT_KEY);
     } catch (e) {
         return res.status(500).send({message: 'Kan niet inloggen, probeer het opnieuw.'});    
     }
 
+    console.log("Gebruiker gemaakt");
     return res.status(201).json({token});
 }
 

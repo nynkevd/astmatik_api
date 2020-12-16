@@ -13,6 +13,8 @@ router.post("/signup", [
     check('email').isEmail(),
     check('password').isLength({min: 6}),
     check('asthmaType').not().isEmpty(),
+    check('triggers').isArray(),
+    check('medication').isArray(),
 ], userController.signup);
 
 router.post("/login", [
