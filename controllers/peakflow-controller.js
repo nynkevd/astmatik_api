@@ -10,8 +10,6 @@ const getOverview = async (req, res) => {
 
     const {userId} = req.userData;
 
-    console.log(userId);
-
     let user;
     try {
         user = await User.findById(userId);
@@ -23,7 +21,8 @@ const getOverview = async (req, res) => {
         return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
     }
 
-    let overview = {today: [], thisWeek: {
+    let overview = {today: {morning: {}, evening: {}}, 
+    thisWeek: {
         beforeMedication: {morning: [], evening: []}, afterMedication: {morning: [], evening: []}
     }, thisMonth: {
         beforeMedication: {morning: [], evening: []}, afterMedication: {morning: [], evening: []}
@@ -31,13 +30,24 @@ const getOverview = async (req, res) => {
 
     let todaysPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('day').format(), $lt: moment().endOf('day').format()}}).sort({timestamp: 'asc'});
     for (const thisPeakflow of todaysPeakflow) {
-        let peakflowToAdd = {
-            beforeMedication: thisPeakflow.beforeMedication,
-            afterMedication: thisPeakflow.afterMedication,
-            time: moment(thisPeakflow.timestamp).format("HH:mm"),
-            notes: thisPeakflow.notes
-        }
-        overview.today.push(peakflowToAdd);
+    
+        if (thisPeakflow.morning) {
+            overview.today.morning = {
+                beforeMedication: thisPeakflow.beforeMedication,
+                afterMedication: thisPeakflow.afterMedication,
+                time: moment(thisPeakflow.timestamp).format("HH:mm"),
+                notes: thisPeakflow.notes,
+                id: thisPeakflow.id
+            }
+        } else {
+            overview.today.evening = {
+                beforeMedication: thisPeakflow.beforeMedication,
+                afterMedication: thisPeakflow.afterMedication,
+                time: moment(thisPeakflow.timestamp).format("HH:mm"),
+                notes: thisPeakflow.notes,
+                id: thisPeakflow.id
+            }
+        }    
     }
 
     let thisWeeksPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('isoWeek').format(), $lt: moment().endOf('isoWeek').format()}}).sort({timestamp: 'asc'});
@@ -82,9 +92,6 @@ const getOverview = async (req, res) => {
         }     
     }
 
-    // console.log(overview);
-    // console.log("======================================================");
-
     overview.thisWeek.beforeMedication.morning = Array.from(overview.thisWeek.beforeMedication.morning, item => item || 0);
     overview.thisWeek.beforeMedication.evening = Array.from(overview.thisWeek.beforeMedication.evening, item => item || 0);
     overview.thisWeek.afterMedication.morning = Array.from(overview.thisWeek.afterMedication.morning, item => item || 0);
@@ -95,7 +102,6 @@ const getOverview = async (req, res) => {
     overview.thisMonth.afterMedication.morning = Array.from(overview.thisMonth.afterMedication.morning, item => item || 0);
     overview.thisMonth.afterMedication.evening = Array.from(overview.thisMonth.afterMedication.evening, item => item || 0);
 
-    console.log(overview);
     console.log("sending");
     return res.status(200).json(overview);
 }
@@ -106,7 +112,9 @@ const add = async (req, res, next) => {
 
     const {userId} = req.userData;
 
-    const {timestamp, beforeMedication, afterMedication, notes} = req.body;
+    const {timestamp, beforeMedication, afterMedication, notes, morning} = req.body;
+
+    console.log(req.body);
 
     let user;
     try {
@@ -119,7 +127,12 @@ const add = async (req, res, next) => {
         return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
     }
 
-    let morning = moment(timestamp).format("HH") < 12 ? true : false;
+    let existingPeakflow;
+    try {
+        existingPeakflow = await Peakflow.find({user: userId, timestamp: {$gt: moment().startOf('day').format(), $lt: moment().endOf('day').format()}, morning: morning}).sort({timestamp: 'asc'});
+    } catch (e) {
+        return res.status(404).send({message: 'Er is iets fout gegaan'});
+    }
  
     const peakflow = new Peakflow({
         timestamp: moment(timestamp).format(),
@@ -141,5 +154,55 @@ const add = async (req, res, next) => {
 
 }
 
+const edit = async (req, res, next) => {
+    await validateRequest(req, res);
+
+    const {userId} = req.userData;
+
+    const {timestamp, beforeMedication, afterMedication, notes, id} = req.body;
+
+    console.log(req.body);
+
+    let user;
+    try {
+        user = await User.findById(userId);
+    } catch (e) {
+        return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
+    }
+
+    if (!user) {
+        return res.status(404).send({message: 'Er is geen gebruiker gevonden.'});
+    }
+
+    let peakflow;
+    try {
+        peakflow = await Peakflow.findById(id);
+    } catch (e) {
+        return res.status(404).send({message: 'Kon de peakflow niet vinden'});
+    }
+
+    console.log(peakflow);
+
+    peakflow.beforeMedication = beforeMedication;
+    peakflow.afterMedication = afterMedication;
+    peakflow.timestamp = timestamp;
+    peakflow.notes = notes;
+    
+    console.log("+++++++++++++++++++++++++++++++++++++++++");
+    console.log(peakflow);
+
+    try {
+        await peakflow.save();
+    } catch (e) {
+        console.log(e);
+        return res.status(500).send({message: 'Kan niet opslaan, probeer het opnieuw.'});
+    }
+
+    return res.status(201).json({message: 'Peakflow aangepast.'});
+
+
+}
+
 exports.getOverview = getOverview;
 exports.add = add;
+exports.edit = edit;
