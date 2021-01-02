@@ -7,6 +7,7 @@ const attackRoutes = require('./routes/attack-routes');
 const peakflowRoutes = require('./routes/peakflow-routes');
 const triggerRoutes = require('./routes/trigger-routes');
 const possibleMedicationRoutes = require('./routes/possibleMedication-routes');
+const medicationSelectorRoutes = require('./routes/medication-routes');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/peakflow", peakflowRoutes);
 
 app.use("/api/triggers", triggerRoutes);
 app.use("/api/possibleMedication", possibleMedicationRoutes);
+app.use("/api/medicationSelectorRoutes", medicationSelectorRoutes); /* Ik denk dat deze zo goed staat, kvdb */
 
 app.get('/', (req, res) => {
     res.send('Ik faal. Groetjes Nynke');
