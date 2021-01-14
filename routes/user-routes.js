@@ -27,7 +27,9 @@ router.patch("/edit", [
     check('password'),
     check('firstname').not().isEmpty(),
     check('lastname'),
-    check('asthmaType').not().isEmpty()
+    check('asthmaType').not().isEmpty(),
+    check('triggers').isArray(),
+    check('medication').isArray(),
 ], userController.editUser);
 
 module.exports = router;

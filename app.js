@@ -28,7 +28,7 @@ app.use("/api/triggers", triggerRoutes);
 app.use("/api/possibleMedication", possibleMedicationRoutes);
 
 app.get('/', (req, res) => {
-    res.send('Ik faal. Groetjes Nynke');
+    res.send('User Features');
 })
 
 mongoose

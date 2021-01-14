@@ -132,7 +132,7 @@ const editUser = async (req, res) => {
     await validateRequest(req, res);
 
     const {userId} = req.userData;
-    const {firstname, lastname, email, password, asthmaType} = req.body;
+    const {firstname, lastname, email, password, asthmaType, triggers, medication} = req.body;
 
     let user;
     try {
@@ -171,6 +171,8 @@ const editUser = async (req, res) => {
         user.email = email;
         user.password = hashedPassword || user.password;
         user.asthmaType = asthmaType;
+        user.triggers = triggers;
+        user.medication = medication;
         await user.save();
     } catch {
         return res.status(500).send({message: 'Er is iets fout gegaan, probeer het opnieuw.'});
