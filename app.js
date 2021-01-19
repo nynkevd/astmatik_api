@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const moment = require('moment-timezone');
+moment.tz.setDefault("Europe/Amsterdam");
 
 const userRoutes = require('./routes/user-routes');
 const attackRoutes = require('./routes/attack-routes');
